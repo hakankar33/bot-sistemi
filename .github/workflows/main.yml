@@ -1,1 +1,33 @@
 
+name: Otomatik Kanal Guncelleyici
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Her 6 saatte bir otomatik çalışır
+  workflow_dispatch: # İstediğinde elinle de başlatabilirsin
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kodu Cek
+        uses: actions/checkout@v3
+
+      - name: Python Kur
+        uses: actions/setup-python@v4
+        with:
+          python-node: '3.9'
+
+      - name: Kutuphaneleri Yukle
+        run: pip install requests
+
+      - name: Botu Calistir
+        run: python bot.py
+
+      - name: Degisiklikleri Kaydet ve Pushla
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "Kanallar Guncellendi" || exit 0
+          git push
