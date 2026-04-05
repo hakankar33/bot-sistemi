@@ -1,35 +1,45 @@
-name: Otomatik Kanal Guncelleyici
+name: Zeus TV M3U8 Botu
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '0 */6 * * *'
-
-permissions:
-  contents: write
+    # Her 10 dakikada bir çalıştırır
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+    # Bu satır sayesinde GitHub Actions sekmesinden manuel olarak da başlatabilirsin
 
 jobs:
-  build:
+  update-m3u:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Botun repoya dosya yükleyebilmesi için yazma izni
+
     steps:
-      - name: Kodu Cek
-        uses: actions/checkout@v3
+      - name: Repoyu Klonla
+        uses: actions/checkout@v4
 
-      - name: Python Kur
-        uses: actions/setup-python@v4
+      - name: Python Ortamını Kur
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.10'
 
-      - name: Kutuphaneleri Yukle
-        run: pip install requests
-
-      - name: Botu Calistir
-        run: python bot.py
-
-      - name: Degisiklikleri Kaydet ve Pushla
+      - name: Gerekli Kütüphaneleri Yükle
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add .
-          git commit -m "Kanallar Guncellendi" || exit 0
+          python -m pip install --upgrade pip
+          pip install requests urllib3
+
+      - name: Botu Çalıştır
+        run: python zeus_bot.py
+
+      - name: Değişiklikleri GitHub'a Yükle
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # Yeni veya değişen dosyaları ekle
+          git add teyzeniyerim/
+          git add ventino.m3u
+          
+          # Eğer dosyalarda bir değişiklik varsa commit ve push yap
+          git diff-index --quiet HEAD || git commit -m "🤖 Otomatik Güncelleme: Kanallar Yenilendi"
           git push
+          
