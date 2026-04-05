@@ -76,23 +76,14 @@ def find_working_domain_and_url():
             response = requests.get(url + "/", timeout=REQUEST_TIMEOUT, allow_redirects=True)
             if response.status_code == 200:
                 print(f"\n✅ Aktif domain bulundu: {url}")
-                # Domain aktif, hemen kaynağı kontrol et
                 base_video_url = get_base_url_from_page(url, 'b1')
                 
-                # Eğer kod sayfadan başarılı bir şekilde çekildiyse döngüyü kır ve dön
                 if base_video_url:
                     return url, base_video_url
                 else:
                     print(f"  ⚠️ Domain aktif ama aranan kod yok! Bir sonraki domaine geçiliyor...\n")
-            else:
-                pass # Status code 200 değilse sessizce geç veya print at
-                
-        except requests.ConnectionError:
-            pass
-        except requests.Timeout:
-            pass
-        except Exception as e:
-            pass
+        except:
+            continue
 
     print("❌ Gerekli kodu içeren hiçbir aktif domain bulunamadı.")
     return None, None
@@ -102,11 +93,9 @@ def create_m3u8_files(base_video_url, github_folder):
     print(f"\n📁 '{github_folder}' klasöründe .m3u8 dosyaları oluşturuluyor...")
     os.makedirs(github_folder, exist_ok=True)
 
-    m3u8_template = """#EXTM3U
-#EXT-X-VERSION:3
-#EXT-X-STREAM-INF:BANDWIDTH=5500000,AVERAGE-BANDWIDTH=8976000,RESOLUTION=1920x1080,CODECS="avc1.640028,mp4a.40.2",FRAME-RATE=25
-{stream_url}
-"""
+    # AppCreator24 için sadece saf linki yazıyoruz (Başlıkları sildik)
+    m3u8_template = "{stream_url}"
+    
     created_files = 0
     for channel_id in CHANNEL_IDS:
         stream_url = f"{base_video_url}{channel_id}/index.m3u8"
@@ -141,17 +130,13 @@ def create_master_m3u(base_video_url):
 def main():
     print("🤖 Zeus TV M3U8 Botu Başlıyor...\n")
 
-    # 1. Artık hem aktif domaini hem de çalışan url'yi aynı anda arıyoruz
     active_domain, base_video_url = find_working_domain_and_url()
     
     if not base_video_url:
         print("❌ Video base URL'si alınamadığı için işlem durduruldu.")
         return
 
-    # 2. Tüm kanallar için ayrı .m3u8 dosyalarını klasöre oluştur
     create_m3u8_files(base_video_url, GITHUB_FOLDER_NAME)
-    
-    # 3. Tüm kanalları içeren tekli ana m3u dosyasını oluştur
     create_master_m3u(base_video_url)
     
     print("\n🚀 Tüm işlemler sorunsuz tamamlandı!")
