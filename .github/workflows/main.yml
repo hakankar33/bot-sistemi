@@ -1,10 +1,12 @@
-
 name: Otomatik Kanal Guncelleyici
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # Her 6 saatte bir otomatik çalışır
-  workflow_dispatch: # İstediğinde elinle de başlatabilirsin
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
